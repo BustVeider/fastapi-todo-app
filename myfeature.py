@@ -1,43 +1,42 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import json
-import os
+import sqlite3
 
 app = FastAPI(title="Todo-api")
-FILE_NAME = "todo_list.json"
+conn = sqlite3.connect("todo.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL
+    )
+""")
+conn.commit()
+
 
 class Task(BaseModel):
     title: str
 
-def load_tasks():
-    if os.path.exists(FILE_NAME):
-        with open(FILE_NAME, "r", encoding="utf-8") as file:
-            return json.load(file)
-    return []
-
-def save_tasks(tasks):
-    with open(FILE_NAME, "w", encoding="utf-8") as file:
-        json.dump(tasks, file, ensure_ascii=False, indent=4)
 
 @app.get("/tasks", tags=["Look a tasks"])
 def get_tasks():
-    to_do_list = load_tasks()
+    cursor.execute("SELECT id, title FROM tasks")
+    rows = cursor.fetchall()
+    to_do_list = [{"id" : row[0], "title" : row[1]} for row in rows]
     return {"tasks": to_do_list}
 
 @app.post("/tasks", tags=["Add tasks"])
 def add_task(task: Task):
-    to_do_list = load_tasks()
-    to_do_list.append(task.title)
-    save_tasks(to_do_list)
+    cursor.execute("INSERT INTO tasks(title) VALUES (?)", (task.title,))
+    conn.commit()
     return {"message" : "Task added successfuly", "task": task.title}
 
-@app.delete("/tasks/{task_index}", tags=["Delete task"])
-def delete_task(task_index: int):
-    to_do_list = load_tasks()
+@app.delete("/tasks/{task_id}", tags=["Delete a task"])
+def delete_task(task_id: int):
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
 
-    if 0<=task_index<len(to_do_list):
-        removed = to_do_list.pop(task_index)
-        save_tasks(to_do_list)
-        return {"message": f"Task '{removed}' delete successfully"}
-
-    raise HTTPException(status_code=404, detail="Task not found")
+    return  {"message" : f"Task with ID {task_id} deleted"}
