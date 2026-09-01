@@ -1,42 +1,46 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-import sqlite3
+from sqlalchemy.orm import Session
 
-app = FastAPI(title="Todo-api")
-conn = sqlite3.connect("todo.db", check_same_thread=False)
-cursor = conn.cursor()
+from database import engine, Base, get_db
+from models import TaskModel
 
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL
-    )
-""")
-conn.commit()
+Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Todo-api with PostgreSQL")
 
-
-class Task(BaseModel):
+class TaskSchema(BaseModel):
     title: str
 
 
-@app.get("/tasks", tags=["Look a tasks"])
-def get_tasks():
-    cursor.execute("SELECT id, title FROM tasks")
-    rows = cursor.fetchall()
-    to_do_list = [{"id" : row[0], "title" : row[1]} for row in rows]
-    return {"tasks": to_do_list}
+@app.get("/tasks", tags=["Task"])
+def get_tasks(db: Session = Depends(get_db)):
+    tasks = db.query(TaskModel).all()
+    return {"tasks": tasks}
 
-@app.post("/tasks", tags=["Add tasks"])
-def add_task(task: Task):
-    cursor.execute("INSERT INTO tasks(title) VALUES (?)", (task.title,))
-    conn.commit()
-    return {"message" : "Task added successfuly", "task": task.title}
+@app.post("/tasks", tags=["Task"])
+def add_task(task: TaskSchema, db:Session = Depends(get_db)):
+    new_task = TaskModel(title=task.title)
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    return {"message" : "Task added successfully", "task": new_task}
 
-@app.delete("/tasks/{task_id}", tags=["Delete a task"])
-def delete_task(task_id: int):
-    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-    conn.commit()
-    if cursor.rowcount == 0:
-        raise HTTPException(status_code=404, detail="Task not found")
+@app.delete("/tasks/{task_id}", tags=["Task"])
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
 
+    if db_task is None:
+        raise  HTTPException(status_code=404, detail="Task not foud")
+    db.delete(db_task)
+    db.commit()
     return  {"message" : f"Task with ID {task_id} deleted"}
+
+@app.patch("/tasks/{task_id}", tags=["Task"])
+def status_update(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+
+    if db_task is None:
+        raise  HTTPException(status_code=404, detail="Task not foud")
+    db_task.is_completed = True
+    db.commit()
+    return  {"message" : f"Task {task_id} status updated"}
