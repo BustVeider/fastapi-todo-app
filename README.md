@@ -14,4 +14,4 @@ This is a simple Todo web application built with Python and FastAPI. It supports
 1. Clone the repository.
 2. Install dependencies: `pip install fastapi uvicorn`
 3. Run the development server: `fastapi dev myfeature.py`
-4. Open interactive API docs: `http://127.0.0`
+4. Open interactive API docs: `http://127.0.0.1:8000/docs`
