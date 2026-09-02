@@ -3,13 +3,16 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import engine, Base, get_db
-from models import TaskModel
-
+from models import TaskModel, UserModel
+from security import get_password_hash
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Todo-api with PostgreSQL")
 
 class TaskSchema(BaseModel):
     title: str
+class UserCreateSchema(BaseModel):
+    username: str
+    password: str
 
 
 @app.get("/tasks", tags=["Task"])
@@ -44,3 +47,12 @@ def status_update(task_id: int, db: Session = Depends(get_db)):
     db_task.is_completed = True
     db.commit()
     return  {"message" : f"Task {task_id} status updated"}
+
+@app.patch("/register", tags=["Auth"])
+def register_user(user: UserCreateSchema, db: Session= Depends(get_db)):
+    hashed_pwd = get_password_hash(user.password)
+    new_user = UserModel(username = user.username, hashed_password = hashed_pwd)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return {"message": "User registreted successfully", "username": new_user.username}
