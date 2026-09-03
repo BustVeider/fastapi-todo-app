@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from database import engine, Base, get_db
 from models import TaskModel, UserModel
-from security import get_password_hash
+from security import get_password_hash, verify_password
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Todo-api with PostgreSQL")
 
@@ -56,3 +56,10 @@ def register_user(user: UserCreateSchema, db: Session= Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return {"message": "User registreted successfully", "username": new_user.username}
+
+@app.post("/login", tags = ["Auth"])
+def login_user(user: UserCreateSchema, db: Session= Depends(get_db)):
+    db_user = db.query(UserModel).filter(UserModel.username == user.username).first()
+    if db_user is None or not verify_password(user.password, db_user.hashed_password):
+        raise HTTPException(status_code=404, detail="Incorrect username or password")
+    return {"message": "Login successful", "username": user.username}
