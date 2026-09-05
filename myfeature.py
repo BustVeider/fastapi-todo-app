@@ -13,6 +13,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 class TaskSchema(BaseModel):
     title: str
+    description: str | None = None
 class UserCreateSchema(BaseModel):
     username: str
     password: str
@@ -34,7 +35,7 @@ def get_tasks(db: Session = Depends(get_db)):
 
 @app.post("/tasks", tags=["Task"])
 def add_task(task: TaskSchema, db:Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
-    new_task = TaskModel(title=task.title, user_id = current_user.id)
+    new_task = TaskModel(title=task.title,description = task.description, user_id = current_user.id)
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
