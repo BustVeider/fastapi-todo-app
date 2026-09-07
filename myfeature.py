@@ -17,6 +17,15 @@ class TaskSchema(BaseModel):
 class UserCreateSchema(BaseModel):
     username: str
     password: str
+class TaskResponseSchema(BaseModel):
+    id: int
+    title: str
+    description: str | None=None
+    is_completed: bool
+    user_id: int
+
+    class Config:
+        from_attributes = True
 def get_currect_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user_id = get_user_id_from_token(token)
     if user_id is None:
@@ -28,10 +37,10 @@ def get_currect_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
-@app.get("/tasks", tags=["Task"])
-def get_tasks(db: Session = Depends(get_db)):
-    tasks = db.query(TaskModel).all()
-    return {"tasks": tasks}
+@app.get("/tasks", tags=["Task"], response_model=list[TaskResponseSchema])
+def get_tasks(db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
+    tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user.id).all()
+    return tasks
 
 @app.post("/tasks", tags=["Task"])
 def add_task(task: TaskSchema, db:Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
@@ -42,8 +51,8 @@ def add_task(task: TaskSchema, db:Session = Depends(get_db), current_user: UserM
     return {"message" : "Task added successfully", "task": new_task}
 
 @app.delete("/tasks/{task_id}", tags=["Task"])
-def delete_task(task_id: int, db: Session = Depends(get_db)):
-    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+def delete_task(task_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
+    db_task = db.query(TaskModel).filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id).first()
 
     if db_task is None:
         raise  HTTPException(status_code=404, detail="Task not foud")
@@ -52,8 +61,8 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
     return  {"message" : f"Task with ID {task_id} deleted"}
 
 @app.patch("/tasks/{task_id}", tags=["Task"])
-def status_update(task_id: int, db: Session = Depends(get_db)):
-    db_task = db.query(TaskModel).filter(TaskModel.id == task_id).first()
+def status_update(task_id: int, db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
+    db_task = db.query(TaskModel).filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id).first()
 
     if db_task is None:
         raise  HTTPException(status_code=404, detail="Task not foud")
