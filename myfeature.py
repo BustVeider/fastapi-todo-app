@@ -38,8 +38,12 @@ def get_currect_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
 
 @app.get("/tasks", tags=["Task"], response_model=list[TaskResponseSchema])
-def get_tasks(db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
-    tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user.id).all()
+def get_tasks(db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user), skip: int = 0, limit: int = 0, search: str | None = None):
+    query = db.query(TaskModel).filter(TaskModel.user_id == current_user.id)
+    if search:
+        query = query.filter(TaskModel.title.ilike(f"%{search}%"))
+
+    tasks = query.offset(skip).limit(limit).all()
     return tasks
 
 @app.post("/tasks", tags=["Task"])
