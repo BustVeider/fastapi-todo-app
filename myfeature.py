@@ -59,7 +59,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db), current_user: UserM
     db_task = db.query(TaskModel).filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id).first()
 
     if db_task is None:
-        raise  HTTPException(status_code=404, detail="Task not foud")
+        raise  HTTPException(status_code=404, detail="Task not found")
     db.delete(db_task)
     db.commit()
     return  {"message" : f"Task with ID {task_id} deleted"}
@@ -69,12 +69,12 @@ def status_update(task_id: int, db: Session = Depends(get_db), current_user: Use
     db_task = db.query(TaskModel).filter(TaskModel.id == task_id, TaskModel.user_id == current_user.id).first()
 
     if db_task is None:
-        raise  HTTPException(status_code=404, detail="Task not foud")
+        raise  HTTPException(status_code=404, detail="Task not found")
     db_task.is_completed = True
     db.commit()
     return  {"message" : f"Task {task_id} status updated"}
 
-@app.patch("/register", tags=["Auth"])
+@app.post("/register", tags=["Auth"])
 def register_user(user: UserCreateSchema, db: Session= Depends(get_db)):
     hashed_pwd = get_password_hash(user.password)
     new_user = UserModel(username = user.username, hashed_password = hashed_pwd)
@@ -87,7 +87,13 @@ def register_user(user: UserCreateSchema, db: Session= Depends(get_db)):
 def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session= Depends(get_db)):
     db_user = db.query(UserModel).filter(UserModel.username == form_data.username).first()
     if db_user is None or not verify_password(form_data.password, db_user.hashed_password):
-        raise HTTPException(status_code=404, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     access_token = create_access_token(data={"sub": str(db_user.id)})
     return {"access_token": access_token , "token_type": "bearer"}
+
+@app.delete("/users/me", tags=["User"])
+def delete_my_account(db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
+    db.delete(current_user)
+    db.commit()
+    return {"message": f"Account for user '{current_user.username}'and all their tasks have been permanently deleted"}
