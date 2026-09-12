@@ -23,6 +23,8 @@ class TaskResponseSchema(BaseModel):
     description: str | None=None
     is_completed: bool
     user_id: int
+class PasswordUpdateSchema(BaseModel):
+    new_password: str
 
     class Config:
         from_attributes = True
@@ -97,3 +99,22 @@ def delete_my_account(db: Session = Depends(get_db), current_user: UserModel = D
     db.delete(current_user)
     db.commit()
     return {"message": f"Account for user '{current_user.username}'and all their tasks have been permanently deleted"}
+
+@app.get("/users/me", tags=["Users"])
+def get_my_profile(current_user: UserModel = Depends(get_currect_user)):
+    return {
+        "id": current_user.id,
+        "username": current_user.username
+    }
+@app.patch("/users/me", tags=["Users"])
+def update_password(
+        password_data: PasswordUpdateSchema,
+        db: Session = Depends(get_db),
+        current_user: UserModel = Depends(get_currect_user)
+):
+    new_hashed_password = get_password_hash(password_data.new_password)
+    current_user.hashed_password = new_hashed_password
+    db.commit()
+    db.refresh(current_user)
+
+    return {"message": "Password updated successfully"}
