@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends, status
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Depends, status, Request
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+import time
 
 from database import engine, Base, get_db
 from models import TaskModel, UserModel
@@ -9,14 +10,25 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Todo-api with PostgreSQL")
+# Засекаем время старта запроса,
+# Пропускаем машину-запрос дальше по конвейеру,
+# Переводим время в миллисекунды и выводим скорость в лог.
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await  call_next(request)
+    process_time = (time.time()- start_time) * 1000
+    print(f"LOG: {request.method} {request.url.path} - Completed in {process_time:.2f}ms")
+    return response
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 class TaskSchema(BaseModel):
-    title: str
+    title: str = Field(..., min_length=1, max_length=100, description="The task name must not be empty or longer than 100 characters.")
     description: str | None = None
 class UserCreateSchema(BaseModel):
     username: str
-    password: str
+    password: str = Field(..., min_length=8, description="The password must be at least 8 characters long")
 class TaskResponseSchema(BaseModel):
     id: int
     title: str
@@ -78,6 +90,10 @@ def status_update(task_id: int, db: Session = Depends(get_db), current_user: Use
 
 @app.post("/register", tags=["Auth"])
 def register_user(user: UserCreateSchema, db: Session= Depends(get_db)):
+    existing_user = db.query(UserModel).filter(UserModel.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+
     hashed_pwd = get_password_hash(user.password)
     new_user = UserModel(username = user.username, hashed_password = hashed_pwd)
     db.add(new_user)
@@ -100,13 +116,13 @@ def delete_my_account(db: Session = Depends(get_db), current_user: UserModel = D
     db.commit()
     return {"message": f"Account for user '{current_user.username}'and all their tasks have been permanently deleted"}
 
-@app.get("/users/me", tags=["Users"])
+@app.get("/users/me", tags=["User"])
 def get_my_profile(current_user: UserModel = Depends(get_currect_user)):
     return {
         "id": current_user.id,
         "username": current_user.username
     }
-@app.patch("/users/me", tags=["Users"])
+@app.patch("/users/me", tags=["User"])
 def update_password(
         password_data: PasswordUpdateSchema,
         db: Session = Depends(get_db),
@@ -118,3 +134,15 @@ def update_password(
     db.refresh(current_user)
 
     return {"message": "Password updated successfully"}
+@app.get("/users/me/stats", tags=["User"])
+def get_user_stats(db: Session = Depends(get_db), current_user: UserModel = Depends(get_currect_user)):
+    total_tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user.id).count()
+    completed_tasks = db.query(TaskModel).filter(TaskModel.user_id == current_user.id, TaskModel.is_completed == True).count()
+    success_rate = (completed_tasks / total_tasks *100) if total_tasks > 0 else 0
+
+    return {
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "pending_tasks": total_tasks - completed_tasks,
+        "success_rate": round(success_rate, 2)
+    }
