@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, status, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 import time
+from datetime import datetime
 
 from database import engine, Base, get_db
 from models import TaskModel, UserModel
@@ -35,6 +36,7 @@ class TaskResponseSchema(BaseModel):
     description: str | None=None
     is_completed: bool
     user_id: int
+    created_at: datetime | None = None
 class PasswordUpdateSchema(BaseModel):
     new_password: str
 
@@ -57,7 +59,7 @@ def get_tasks(db: Session = Depends(get_db), current_user: UserModel = Depends(g
     if search:
         query = query.filter(TaskModel.title.ilike(f"%{search}%"))
 
-    tasks = query.offset(skip).limit(limit).all()
+    tasks = query.order_by(TaskModel.created_at.desc()).offset(skip).limit(limit).all()
     return tasks
 
 @app.post("/tasks", tags=["Task"])

@@ -1,34 +1,223 @@
 body {
-    background-color: #1a1a1a;
+    background-color: #0f111a;
     color: #ffffff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
-.app-container {
-    text_align: center;
-    padding: 30px;
-    border-radius: 12px;
-    background-color: #2d2d2d;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+.dashboard-wrapper{
+    display: flex;
+    height: 100vh;
+}
+.sidebar{
+    width: 260px;
+    background-color: #161925;
+    padding: 30px 20px;
+    border-right: 1px solid #22263f;
 }
 
-
-.btn-main{
-    background-color: #ff4757;
-    color: white;
-    border: 30px;
-    padding: 12px 24px;
+.logo-section h2{
+    margin: 12px;
+    font-size: 24px;
+    color: #00d2ff;
+    letter-spacing: 1px;
+}
+.logo-sub{
+    font-size: 12px;
+    color: #4e5473;
+    vertical-align: super
+}
+.menu-links{
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.menu-links a{
+    color:#8b92b5;
+    text-decoration: none;
     font-size: 16px;
+    padding: 12px 15px;
     border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+}
+.menu-links a.active, .menu-links a:hover{
+    color: #ffffff;
+    background-color: #22263f;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+.main-content {
+    flex: 1;
+    padding: 40px;
+    background-color: #0f111a;
+    overflow-y: auto;
+}
+.top-header h1{
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+.top-header p{
+    color: #656d9a;
+    margin: 0 0 40px 0;
+}
+#Создаём адаптивную сетку карточек с автопереносом
+.stats-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+.stat-card{
+    background-color: #161925;
+    padding: 25px;
+    border-radius: 16px;
+    border: 1px solid #22263f;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.stat-card h3{
+    margin: 0;
+    font-size: 16px;
+    color: #656d9a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.stat-value{
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 15px 0 5px 0;
+    transition: color 0.3s ease;
+}
+.stat-desc{
+    margin: 0;
+    font-size: 13px;
+    color: #4e5473;
+}
+#Свечение при наведение
+.stat-card:hover{
+    transform: translateY(-5px);
+    background-color: #1c2030;
+    border-color: #00d2ff;
+    box-shadow: 0 10px 30px rgba(0, 210, 255, 0.15), 0 0 15px rgba(0, 210, 255, 0.1);
+}
+.stat-card:hover .stat-value {
+    color: #00d2ff;
+}
+.tasks-section {
+    margin-top: 50px;
+    background-color: #161925;
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid #22263f;
 }
 
-.btn-main:hover {
-    background-color: #ff6b81;
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+.task-count-badge {
+    background-color: #22263f;
+    color: #00d2ff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid rgba(0, 210, 255, 0.3);
+}
+
+/* Контейнер списка */
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Строка задачи */
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f111a;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #22263f;
+    transition: all 0.3s ease;
+}
+
+.task-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+/* Настройки кастомного чекбокса */
+.task-item input[type="checkbox"] {
+    margin-top: 5px;
+    width: 18px;
+    height: 18px;
+    accent-color: #00d2ff; /* Неоновый цвет для галочки */
+    cursor: pointer;
+}
+
+.task-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    display: block;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+}
+
+.task-desc {
+    margin: 0;
+    font-size: 14px;
+    color: #656d9a;
+    line-height: 1.4;
+}
+
+.task-date {
+    font-size: 12px;
+    color: #4e5473;
+    font-family: monospace;
+    white-space: nowrap;
+    background-color: #161925;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* Эффекты при наведении на задачу */
+.task-item:hover {
+    border-color: #00d2ff;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.05);
+    transform: translateX(5px); /* Строка мягко сдвигается вправо */
+}
+
+/* Стили для выполненной задачи */
+.task-item.completed {
+    opacity: 0.5;
+    border-color: #22263f;
+    background-color: #12141f;
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through; /* Зачёркиваем текст */
+    color: #4e5473;
+}
+
+.task-item.completed:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #22263f;
 }

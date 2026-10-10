@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, ForeignKeyConstraint
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, ForeignKeyConstraint, DateTime
 from database import Base
 from sqlalchemy.orm import relationship
+from datetime import  datetime
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -22,3 +23,4 @@ class TaskModel(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     owner = relationship("UserModel", back_populates="tasks")
     description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

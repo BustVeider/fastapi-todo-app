@@ -7,10 +7,98 @@
       <title>Timur's Tech Dashboard</title>
   </head>
   <body>
-        <div class="app-container">
-            <h1>Добро пожаловать в Срединное Государство Кода</h1>
-            <p>Этот Dashboard скоро соединится с бекендом FastAPI и PostgreSQL!!</p>
-            <button class="btn-main">Запустить Спринт</button>
+        <div class="dashboard-wrapper">
+            <aside class="sidebar">
+                <div class="logo-section">
+                    <span class="logo-icon">💻🤖🕸️</span>
+                    <h2>电脑网 <span class="logo_sub">v9.0.0</span></h2>
+                </div>
+                <nav class="menu-links">
+                    <a href="#" class="active">Моя статистика </a>
+                    <a href="#">Задачи</a>
+                    <a href="#">Настройка профиля</a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <header class="stat-card blue-glow">
+                    <h1>Привет, Тимур! Добро пожаловать на бэкенд-базу </h1>
+                    <p>Аналитика твоего прогресса в реальном времени.</p>
+                </header>
+
+                <section class="stats-grid">
+                    <div class="stat-card blue-glow">
+                        <h3>Всего задач</h3>
+                        <div class="stat-value">12</div>
+                        <p class="stat-desc">Загружено в PostgreSQL</p>
+                    </div>
+                    <div class="stat-card blue-glow">
+                        <h3>Выполнено</h3>
+                        <div class="stat-value">5</div>
+                        <p class="stat-desc">Запрещённые спринты</p>
+                    </div>
+                    <div class="stat-card blue-glow">
+                        <h3>В процессе</h3>
+                        <div class="stat-value">7</div>
+                        <p class="stat-desc">Ожидает твоего кода</p>
+                    </div>
+                    <div class="stat-card blue-glow">
+                        <h3>Успеваемость</h3>
+                        <div class="stat-value">41.6%</div>
+                        <p class="stat-desc">Твой личный КПД</p>
+                    </div>
+                </section>
+                <section class="tasks-section">
+                <div class="section-header">
+                    <h2>📝 Текущие задачи проекта</h2>
+                    <span class="task-count-badge">3 в работе</span>
+                </div>
+
+                <div class="tasks-list">
+                    <!-- Задача 1 (Выполнена) -->
+                    <div class="task-item completed">
+                        <div class="task-left">
+                            <input type="checkbox" id="task-1" checked disabled>
+                            <label for="task-1">
+                                <span class="task-title">Настроить каскадное удаление данных (Cascade Delete)</span>
+                                <p class="task-desc">Связать таблицы пользователей и задач на уровне PostgreSQL через Alembic-миграцию.</p>
+                            </label>
+                        </div>
+                        <div class="task-right">
+                            <span class="task-date">UTC 12:45</span>
+                        </div>
+                    </div>
+
+                    <!-- Задача 2 (В процессе) -->
+                    <div class="task-item">
+                        <div class="task-left">
+                            <input type="checkbox" id="task-2">
+                            <label for="task-2">
+                                <span class="task-title">Разработать визуальный Dashboard на HTML/CSS</span>
+                                <p class="task-desc">Сверстать адаптивную тёмно-неоновую админку со встроенной статистикой для портфолио.</p>
+                            </label>
+                        </div>
+                        <div class="task-right">
+                            <span class="task-date">UTC 15:30</span>
+                        </div>
+                    </div>
+
+                    <!-- Задача 3 (В процессе) -->
+                    <div class="task-item">
+                        <div class="task-left">
+                            <input type="checkbox" id="task-3">
+                            <label for="task-3">
+                                <span class="task-title">Реализовать асинхронный Middleware для логирования</span>
+                                <p class="task-desc">Перехватывать HTTP-запросы и высчитывать точное время выполнения роутов в миллисекундах (ms).</p>
+                            </label>
+                        </div>
+                        <div class="task-right">
+                            <span class="task-date">UTC 18:22</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            </main>
         </div>
   </body>
 </html>
